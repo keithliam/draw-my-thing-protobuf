@@ -23,11 +23,12 @@ message UdpPacket {
 
   message DrawPacket {
     required PacketType type = 1;
-    required int32 x = 2;
-    required int32 y = 3;
-    required string color = 4;
-    required int32 width = 5;
+    optional int32 x = 2;
+    optional int32 y = 3;
+    optional string color = 4;
+    optional int32 width = 5;
     optional bool start = 6;
+    optional bool clear = 7;
   }
 
   message WinnerPacket {

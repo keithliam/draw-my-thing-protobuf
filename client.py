@@ -85,8 +85,11 @@ def line3():
 
 def clear(event=None):
   canvas.delete("all") #clear canvas
-
-
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    clear = True
+  )
+  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 root.geometry("1000x620") 
 root.title("CHAT AREA")
@@ -290,20 +293,23 @@ def myTurnListener(sock, canvas):
   winner = None
   timer = 30
 
-def userDraw(x, y, color, width, start):
-  global ix, iy
-  if start:
+def userDraw(x, y, color, width, start, clear):
+  if clear:
+    canvas.delete("all") #clear canvas
+  else:
+    global ix, iy
+    if start:
+      ix = x
+      iy = y
+    canvas.configure(state="normal")
+    x1, y1 = ( x - (radius/2) ), ( y - (radius/2) )
+    x2, y2 = ( x + (radius/2) ), ( y + (radius/2) )
+    canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+    if ix:
+      canvas.create_line(ix, iy, x, y, fill = color, width = width)
     ix = x
     iy = y
-  canvas.configure(state="normal")
-  x1, y1 = ( x - (radius/2) ), ( y - (radius/2) )
-  x2, y2 = ( x + (radius/2) ), ( y + (radius/2) )
-  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  if ix:
-    canvas.create_line(ix, iy, x, y, fill = color, width = width)
-  ix = x
-  iy = y
-  canvas.configure(state="disabled")
+    canvas.configure(state="disabled")
 
 def otherTurnListener(sock, canvas):
   global winner, timer
@@ -319,7 +325,7 @@ def otherTurnListener(sock, canvas):
     elif udpPacket.type == udp.UdpPacket.DRAW:
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start) # for GUI
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear) # for GUI
     elif udpPacket.type == udp.UdpPacket.WINNER:
       winnerPacket = udp.UdpPacket.WinnerPacket()
       winnerPacket.ParseFromString(data)
@@ -395,7 +401,7 @@ def gameStart(sock, player, canvas):
       canvas.configure(state="normal")
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start)
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear)
       canvas.configure(state="disabled")
 
 def printScores(scores):

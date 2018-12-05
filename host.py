@@ -93,6 +93,12 @@ def line3():
 
 def clear(event=None):
   canvas.delete("all") #clear canvas
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    clear = True
+  )
+  broadcast(udpSock, drawPacket)
+
 
 
 
@@ -348,20 +354,23 @@ def myTurnListener(sock, canvas):
   timer = 30
 
   
-def userDraw(x, y, color, width, start):
-  global ix, iy
-  if start:
+def userDraw(x, y, color, width, start, clear):
+  if clear:
+    canvas.delete("all") #clear canvas
+  else:
+    global ix, iy
+    if start:
+      ix = x
+      iy = y
+    canvas.configure(state="normal")
+    x1, y1 = ( x - radius ), ( y - radius )
+    x2, y2 = ( x + radius ), ( y + radius )
+    canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+    if ix:
+      canvas.create_line(ix, iy, x, y, fill = color, width = width)
     ix = x
     iy = y
-  canvas.configure(state="normal")
-  x1, y1 = ( x - radius ), ( y - radius )
-  x2, y2 = ( x + radius ), ( y + radius )
-  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  if ix:
-    canvas.create_line(ix, iy, x, y, fill = color, width = width)
-  ix = x
-  iy = y
-  canvas.configure(state="disabled")
+    canvas.configure(state="disabled")
 
 def otherTurnDrawListener(sock):
    global addrList
@@ -373,7 +382,7 @@ def otherTurnDrawListener(sock):
        if udpPacket.type == udp.UdpPacket.DRAW:
           drawPacket = udp.UdpPacket.DrawPacket()
           drawPacket.ParseFromString(data)
-          userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start) # for GUI
+          userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear) # for GUI
           broadcast(sock, drawPacket)
        elif udpPacket.type == udp.UdpPacket.PORT:
           if addr not in addrList:
