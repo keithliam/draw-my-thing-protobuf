@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto2',
   serialized_options=_b('\n\005protoB\017UdpPacketProtos'),
-  serialized_pb=_b('\n\x10udp_packet.proto\x1a\x0cplayer.proto\"%\n\x06Scores\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05score\x18\x02 \x02(\x05\"\xc4\x04\n\tUdpPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1aV\n\nDrawPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\r\n\x05\x63olor\x18\x04 \x02(\t\x1aL\n\x0cWinnerPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x1a\x34\n\rTimeoutPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1as\n\nTurnPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x12\x17\n\x06scores\x18\x03 \x03(\x0b\x32\x07.Scores\x12\x0e\n\x06object\x18\x04 \x01(\t\x1a?\n\nTimePacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x0c\n\x04time\x18\x02 \x02(\x05\x1a\x31\n\nPortPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\"M\n\nPacketType\x12\x08\n\x04\x44RAW\x10\x00\x12\n\n\x06WINNER\x10\x01\x12\x08\n\x04TURN\x10\x02\x12\x08\n\x04TIME\x10\x03\x12\x0b\n\x07TIMEOUT\x10\x04\x12\x08\n\x04PORT\x10\x05\x42\x18\n\x05protoB\x0fUdpPacketProtos')
+  serialized_pb=_b('\n\x10udp_packet.proto\x1a\x0cplayer.proto\"%\n\x06Scores\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05score\x18\x02 \x02(\x05\"\xe2\x04\n\tUdpPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1at\n\nDrawPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\r\n\x05\x63olor\x18\x04 \x02(\t\x12\r\n\x05width\x18\x05 \x02(\x05\x12\r\n\x05start\x18\x06 \x01(\x08\x1aL\n\x0cWinnerPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x1a\x34\n\rTimeoutPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1as\n\nTurnPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x12\x17\n\x06scores\x18\x03 \x03(\x0b\x32\x07.Scores\x12\x0e\n\x06object\x18\x04 \x01(\t\x1a?\n\nTimePacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x0c\n\x04time\x18\x02 \x02(\x05\x1a\x31\n\nPortPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\"M\n\nPacketType\x12\x08\n\x04\x44RAW\x10\x00\x12\n\n\x06WINNER\x10\x01\x12\x08\n\x04TURN\x10\x02\x12\x08\n\x04TIME\x10\x03\x12\x0b\n\x07TIMEOUT\x10\x04\x12\x08\n\x04PORT\x10\x05\x42\x18\n\x05protoB\x0fUdpPacketProtos')
   ,
   dependencies=[player__pb2.DESCRIPTOR,])
 
@@ -59,8 +59,8 @@ _UDPPACKET_PACKETTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=577,
-  serialized_end=654,
+  serialized_start=607,
+  serialized_end=684,
 )
 _sym_db.RegisterEnumDescriptor(_UDPPACKET_PACKETTYPE)
 
@@ -138,6 +138,20 @@ _UDPPACKET_DRAWPACKET = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='width', full_name='UdpPacket.DrawPacket.width', index=4,
+      number=5, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='start', full_name='UdpPacket.DrawPacket.start', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -151,7 +165,7 @@ _UDPPACKET_DRAWPACKET = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=124,
-  serialized_end=210,
+  serialized_end=240,
 )
 
 _UDPPACKET_WINNERPACKET = _descriptor.Descriptor(
@@ -187,8 +201,8 @@ _UDPPACKET_WINNERPACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=212,
-  serialized_end=288,
+  serialized_start=242,
+  serialized_end=318,
 )
 
 _UDPPACKET_TIMEOUTPACKET = _descriptor.Descriptor(
@@ -217,8 +231,8 @@ _UDPPACKET_TIMEOUTPACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=290,
-  serialized_end=342,
+  serialized_start=320,
+  serialized_end=372,
 )
 
 _UDPPACKET_TURNPACKET = _descriptor.Descriptor(
@@ -268,8 +282,8 @@ _UDPPACKET_TURNPACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=344,
-  serialized_end=459,
+  serialized_start=374,
+  serialized_end=489,
 )
 
 _UDPPACKET_TIMEPACKET = _descriptor.Descriptor(
@@ -305,8 +319,8 @@ _UDPPACKET_TIMEPACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=461,
-  serialized_end=524,
+  serialized_start=491,
+  serialized_end=554,
 )
 
 _UDPPACKET_PORTPACKET = _descriptor.Descriptor(
@@ -335,8 +349,8 @@ _UDPPACKET_PORTPACKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=526,
-  serialized_end=575,
+  serialized_start=556,
+  serialized_end=605,
 )
 
 _UDPPACKET = _descriptor.Descriptor(
@@ -367,7 +381,7 @@ _UDPPACKET = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=74,
-  serialized_end=654,
+  serialized_end=684,
 )
 
 _UDPPACKET_DRAWPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE

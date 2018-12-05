@@ -26,6 +26,8 @@ message UdpPacket {
     required int32 x = 2;
     required int32 y = 3;
     required string color = 4;
+    required int32 width = 5;
+    optional bool start = 6;
   }
 
   message WinnerPacket {

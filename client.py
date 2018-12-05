@@ -9,8 +9,19 @@ import tkinter as tk
 root = tk.Tk()
 def prev(event):
   global ix, iy
+  x1, y1 = ( event.x - radius ), ( event.y - radius )
+  x2, y2 = ( event.x + radius ), ( event.y + radius )
+  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
   ix, iy = event.x, event.y
-  print("START:",event.x,event.y)
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    x = event.x,
+    y = event.y,
+    color = color,
+    width = linewidth,
+    start = True
+  )
+  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 def draw(event):
   global ix, iy
@@ -23,7 +34,8 @@ def draw(event):
     type = udp.UdpPacket.DRAW,
     x = event.x,
     y = event.y,
-    color = color
+    color = color,
+    width = linewidth
   )
   udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
@@ -278,13 +290,19 @@ def myTurnListener(sock, canvas):
   winner = None
   timer = 30
 
-def userDraw(x, y, color):
+def userDraw(x, y, color, width, start):
   global ix, iy
+  if start:
+    ix = x
+    iy = y
   canvas.configure(state="normal")
-  x1, y1 = ( x - radius ), ( y - radius )
-  x2, y2 = ( x + radius ), ( y + radius )
+  x1, y1 = ( x - (radius/2) ), ( y - (radius/2) )
+  x2, y2 = ( x + (radius/2) ), ( y + (radius/2) )
   canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  canvas.create_line(ix, iy, x, y, fill = color, width = linewidth)
+  if ix:
+    canvas.create_line(ix, iy, x, y, fill = color, width = width)
+  ix = x
+  iy = y
   canvas.configure(state="disabled")
 
 def otherTurnListener(sock, canvas):
@@ -301,7 +319,7 @@ def otherTurnListener(sock, canvas):
     elif udpPacket.type == udp.UdpPacket.DRAW:
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start) # for GUI
     elif udpPacket.type == udp.UdpPacket.WINNER:
       winnerPacket = udp.UdpPacket.WinnerPacket()
       winnerPacket.ParseFromString(data)
@@ -333,6 +351,8 @@ def othersTurn(sock, canvas, player):
   drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
   canvas.delete("all")
+  ix = None
+  iy = None
   objectToDraw = None
   winner = None
   timer = 30
@@ -347,6 +367,8 @@ def gameStart(sock, player, canvas):
     udpPacket.ParseFromString(data)
     if udpPacket.type == udp.UdpPacket.TURN:
       canvas.delete("all")
+      ix = None
+      iy = None
       turnPacket.ParseFromString(data)
       printScores(turnPacket.scores)
       turn = turnPacket.player
@@ -373,7 +395,7 @@ def gameStart(sock, player, canvas):
       canvas.configure(state="normal")
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color)
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start)
       canvas.configure(state="disabled")
 
 def printScores(scores):

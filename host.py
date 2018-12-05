@@ -13,7 +13,19 @@ root = tk.Tk()
 
 def prev(event):
   global ix, iy
+  x1, y1 = ( event.x - radius ), ( event.y - radius )
+  x2, y2 = ( event.x + radius ), ( event.y + radius )
+  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
   ix, iy = event.x, event.y
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    x = event.x,
+    y = event.y,
+    color = color,
+    width = linewidth,
+    start = True
+  )
+  broadcast(udpSock, drawPacket)
 
 def draw(event):
   global ix, iy
@@ -27,7 +39,8 @@ def draw(event):
     type = udp.UdpPacket.DRAW,
     x = event.x,
     y = event.y,
-    color = color
+    color = color,
+    width = linewidth
   )
   broadcast(udpSock, drawPacket)
 
@@ -90,8 +103,8 @@ canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
 canvas.bind("<B3-Motion>", erase)
-ix = 0
-iy = 0
+ix = None
+iy = None
 color = "black"
 yellow = tk.Button(root, bg="yellow", command=yellow)
 blue = tk.Button(root, bg="blue", command=blue)
@@ -335,13 +348,19 @@ def myTurnListener(sock, canvas):
   timer = 30
 
   
-def userDraw(x, y, color):
+def userDraw(x, y, color, width, start):
   global ix, iy
+  if start:
+    ix = x
+    iy = y
   canvas.configure(state="normal")
   x1, y1 = ( x - radius ), ( y - radius )
   x2, y2 = ( x + radius ), ( y + radius )
   canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  canvas.create_line(ix, iy, x, y, fill = color, width = linewidth)
+  if ix:
+    canvas.create_line(ix, iy, x, y, fill = color, width = width)
+  ix = x
+  iy = y
   canvas.configure(state="disabled")
 
 def otherTurnDrawListener(sock):
@@ -354,7 +373,7 @@ def otherTurnDrawListener(sock):
        if udpPacket.type == udp.UdpPacket.DRAW:
           drawPacket = udp.UdpPacket.DrawPacket()
           drawPacket.ParseFromString(data)
-          userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+          userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start) # for GUI
           broadcast(sock, drawPacket)
        elif udpPacket.type == udp.UdpPacket.PORT:
           if addr not in addrList:
@@ -397,6 +416,8 @@ def othersTurn(sock, canvas, player):
   # drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
   canvas.delete("all")
+  ix = None
+  iy = None
   winner = None
   objectToDraw = None
   timer = 30
