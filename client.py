@@ -25,7 +25,7 @@ def draw(event):
     y = event.y,
     color = color
   )
-  udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
+  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 def erase(event):
   global ix, iy

@@ -29,7 +29,7 @@ def draw(event):
     y = event.y,
     color = color
   )
-  broadcast(sock, drawPacket)
+  broadcast(udpSock, drawPacket)
 
 
 
@@ -345,16 +345,25 @@ def userDraw(x, y, color):
   canvas.configure(state="disabled")
 
 def otherTurnDrawListener(sock):
+   global addrList
    udpPacket = udp.UdpPacket()
    while True:
-     data, addr = sock.recvfrom(1024)
-     udpPacket.ParseFromString(data)
-     if winner:
-       break
-     if udpPacket.type == udp.UdpPacket.DRAW:
-        drawPacket = udp.UdpPacket.DrawPacket()
-        drawPacket.ParseFromString(data)
-        userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+    try:
+       data, addr = sock.recvfrom(1024)
+       udpPacket.ParseFromString(data)
+
+       if winner:
+         break
+       if udpPacket.type == udp.UdpPacket.DRAW:
+          drawPacket = udp.UdpPacket.DrawPacket()
+          drawPacket.ParseFromString(data)
+          userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+          broadcast(sock, drawPacket)
+       elif udpPacket.type == udp.UdpPacket.PORT:
+          if addr not in addrList:
+            addrList.append(addr)
+    except:
+      pass
 
 def broadcast(sock, packet):
   global addrList
@@ -366,8 +375,6 @@ def othersTurn(sock, canvas, player):
   canvas.configure(state="disabled")
   timeThread = threading.Thread(target=countdown, args=(sock,))
   timeThread.start()
-  joinThread = threading.Thread(target=joinListener, args=(sock,))
-  joinThread.start()
   otherTurnDrawListener(sock)
   while timer > 0 and not winner:
     time.sleep(0.25)
