@@ -8,44 +8,47 @@ import tkinter as tk
 # GUIIIIIII +++++++++++++++++++++++++++++++++++++++++++++
 root = tk.Tk()
 def prev(event):
-  global ix, iy
-  x1, y1 = ( event.x - radius ), ( event.y - radius )
-  x2, y2 = ( event.x + radius ), ( event.y + radius )
-  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  ix, iy = event.x, event.y
-  drawPacket = udp.UdpPacket.DrawPacket(
-    type = udp.UdpPacket.DRAW,
-    x = event.x,
-    y = event.y,
-    color = color,
-    width = linewidth,
-    start = True
-  )
-  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+  if drawFlag:
+    global ix, iy
+    x1, y1 = ( event.x - radius ), ( event.y - radius )
+    x2, y2 = ( event.x + radius ), ( event.y + radius )
+    canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+    ix, iy = event.x, event.y
+    drawPacket = udp.UdpPacket.DrawPacket(
+      type = udp.UdpPacket.DRAW,
+      x = event.x,
+      y = event.y,
+      color = color,
+      width = linewidth,
+      start = True
+    )
+    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 def draw(event):
-  global ix, iy
-  x1, y1 = ( event.x - radius ), ( event.y - radius )
-  x2, y2 = ( event.x + radius ), ( event.y + radius )
-  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
-  canvas.create_line(ix, iy, event.x, event.y, fill = color, width = linewidth)
-  ix, iy = event.x, event.y
-  drawPacket = udp.UdpPacket.DrawPacket(
-    type = udp.UdpPacket.DRAW,
-    x = event.x,
-    y = event.y,
-    color = color,
-    width = linewidth
-  )
-  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+  if drawFlag:
+    global ix, iy
+    x1, y1 = ( event.x - radius ), ( event.y - radius )
+    x2, y2 = ( event.x + radius ), ( event.y + radius )
+    canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+    canvas.create_line(ix, iy, event.x, event.y, fill = color, width = linewidth)
+    ix, iy = event.x, event.y
+    drawPacket = udp.UdpPacket.DrawPacket(
+      type = udp.UdpPacket.DRAW,
+      x = event.x,
+      y = event.y,
+      color = color,
+      width = linewidth
+    )
+    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 def erase(event):
-  global ix, iy
-  x1, y1 = ( event.x - 6 ), ( event.y - 6 )
-  x2, y2 = ( event.x + 6 ), ( event.y + 6 )
-  canvas.create_oval( x1, y1, x2, y2, fill = "white", outline = "white")
-  canvas.create_line(ix, iy, event.x, event.y, fill = "white", width = 12)
-  ix, iy = event.x, event.y
+  if drawFlag:
+    global ix, iy
+    x1, y1 = ( event.x - 6 ), ( event.y - 6 )
+    x2, y2 = ( event.x + 6 ), ( event.y + 6 )
+    canvas.create_oval( x1, y1, x2, y2, fill = "white", outline = "white")
+    canvas.create_line(ix, iy, event.x, event.y, fill = "white", width = 12)
+    ix, iy = event.x, event.y
 
 def submit(event=None):
     message = entry.get()   
@@ -84,12 +87,13 @@ def line3():
   linewidth = 24
 
 def clear(event=None):
-  canvas.delete("all") #clear canvas
-  drawPacket = udp.UdpPacket.DrawPacket(
-    type = udp.UdpPacket.DRAW,
-    clear = True
-  )
-  udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+  if drawFlag:
+    canvas.delete("all") #clear canvas
+    drawPacket = udp.UdpPacket.DrawPacket(
+      type = udp.UdpPacket.DRAW,
+      clear = True
+    )
+    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
 root.geometry("1000x620") 
 root.title("CHAT AREA")
@@ -273,18 +277,17 @@ def winnerListen(sock):
 
 def myTurnListener(sock, canvas):
   global objectToDraw, winner, timer
-  canvas.configure(state="normal")
   winnerThread = threading.Thread(target=winnerListen, args=(sock,))
   winnerThread.start()
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, winner.name + ' won!! \n') 
+    chatarea.insert(tk.END, winner.name + ' won! \n') 
     chatarea.configure(state = 'disabled')
   else:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, 'Nobody won.. \n') 
+    chatarea.insert(tk.END, 'Nobody won. \n') 
     chatarea.configure(state = 'disabled')
   winnerThread.join()
   # declareWinner() # thread with timer for GUI (use `winner` variable)
@@ -292,8 +295,9 @@ def myTurnListener(sock, canvas):
   objectToDraw = None
   winner = None
   timer = 30
+  drawFlag = False
 
-def userDraw(x, y, color, width, start, clear):
+def userDraw(canvas, x, y, color, width, start, clear):
   if clear:
     canvas.delete("all") #clear canvas
   else:
@@ -301,7 +305,6 @@ def userDraw(x, y, color, width, start, clear):
     if start:
       ix = x
       iy = y
-    canvas.configure(state="normal")
     x1, y1 = ( x - (width / 2) ), ( y - (width / 2) )
     x2, y2 = ( x + (width / 2) ), ( y + (width / 2) )
     canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
@@ -309,10 +312,9 @@ def userDraw(x, y, color, width, start, clear):
       canvas.create_line(ix, iy, x, y, fill = color, width = width)
     ix = x
     iy = y
-    canvas.configure(state="disabled")
 
 def otherTurnListener(sock, canvas):
-  global winner, timer
+  global winner, timer, gametime
   udpPacket = udp.UdpPacket()
   while True:
     data, addr = sock.recvfrom(1024)
@@ -325,7 +327,7 @@ def otherTurnListener(sock, canvas):
     elif udpPacket.type == udp.UdpPacket.DRAW:
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear) # for GUI
+      userDraw(canvas, drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear) # for GUI
     elif udpPacket.type == udp.UdpPacket.WINNER:
       winnerPacket = udp.UdpPacket.WinnerPacket()
       winnerPacket.ParseFromString(data)
@@ -333,26 +335,24 @@ def otherTurnListener(sock, canvas):
       break
     elif udpPacket.type == udp.UdpPacket.TIMEOUT:
       break
-    canvas.configure(state="disabled")
 
 def othersTurn(sock, canvas, player):
   global objectToDraw, timer, winner
-  canvas.configure(state="disabled")
   drawingPlayerThread = threading.Thread(target=otherTurnListener, args=(sock, canvas))
   drawingPlayerThread.start()
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner == player:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, 'You won!! \n') 
+    chatarea.insert(tk.END, 'You won! \n') 
     chatarea.configure(state = 'disabled')
   elif winner:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, winner.name + ' won!! \n') 
+    chatarea.insert(tk.END, winner.name + ' won! \n') 
     chatarea.configure(state = 'disabled')
   else:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, 'Nobody won.. \n') 
+    chatarea.insert(tk.END, 'Nobody won. \n') 
     chatarea.configure(state = 'disabled')
   drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
@@ -364,7 +364,7 @@ def othersTurn(sock, canvas, player):
   timer = 30
 
 def gameStart(sock, player, canvas):
-  global objectToDraw, turn, ipAddressPort, turnPacket
+  global objectToDraw, turn, ipAddressPort, turnPacket, drawFlag
   udpPacket = udp.UdpPacket()
   turnPacket = udp.UdpPacket.TurnPacket()
 
@@ -380,6 +380,7 @@ def gameStart(sock, player, canvas):
       turn = turnPacket.player
       objectToDraw = turnPacket.object
       if turn == player:
+        drawFlag = True
         turnLabel['text'] = "Your turn!"
         wordarea.configure(state="normal")
         wordarea.delete(1.0, tk.END)
@@ -398,11 +399,9 @@ def gameStart(sock, player, canvas):
         othersTurn(sock, canvas, player)
       turn = None
     elif udpPacket.type == udp.UdpPacket.DRAW:
-      canvas.configure(state="normal")
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
-      userDraw(drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear)
-      canvas.configure(state="disabled")
+      userDraw(canvas, drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear)
 
 def printScores(scores):
   players.configure(state = 'normal')
