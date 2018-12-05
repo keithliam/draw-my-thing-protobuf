@@ -1,0 +1,44 @@
+syntax = "proto2";
+
+import "player.proto";
+option java_package = "proto";
+option java_outer_classname = "UdpPacketProtos";
+
+message UdpPacket {
+  enum PacketType {
+    DRAW = 0;
+    WINNER = 1;
+    TURN = 2;
+    TIME = 3;
+    TIMEOUT = 4;
+  }
+
+  required PacketType type = 1;
+
+  message DrawPacket {
+    required PacketType type = 1;
+    required int32 x = 2;
+    required int32 y = 3;
+    required string color = 4;
+  }
+
+  message WinnerPacket {
+    required PacketType type = 1;
+    required Player player = 2;
+  }
+
+  message TimeoutPacket {
+    required PacketType type = 1;
+  }
+
+  message TurnPacket {
+    required PacketType type = 1;
+    required Player player = 2;
+    optional string object = 3;
+  }
+
+  message TimePacket {
+    required PacketType type = 1;
+    required int32 time = 2;
+  }
+}
