@@ -186,6 +186,11 @@ def othersTurn(sock, canvas, player):
   winner = None
   timer = 30
 
+def printScores(scores):
+  print("\nScores:")
+  for score in scores:
+    print(score.name, '-', score.score)
+
 def gameStart(sock, player, canvas):
   global objectToDraw, turn, ipAddressPort
   udpPacket = udp.UdpPacket()
@@ -198,6 +203,7 @@ def gameStart(sock, player, canvas):
       turnPacket.ParseFromString(data)
       turn = turnPacket.player
       objectToDraw = turnPacket.object
+      printScores(turnPacket.scores)
       if turn == player:
         print('\nYour turn.')
         print('Object to Draw:', objectToDraw)

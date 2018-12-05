@@ -62,7 +62,7 @@ def getPlayerList(sock):
   return list(packet.player_list)
 
 def receivePackets(sock, player):
-  global objectToDraw, turn, winner, addrList, nextPort
+  global objectToDraw, turn, winner, addrList, nextPort, scores
   tcpPacket = tcp.TcpPacket()
   chatPacket = tcp.TcpPacket.ChatPacket()
   connectPacket = tcp.TcpPacket.ConnectPacket()
@@ -82,6 +82,7 @@ def receivePackets(sock, player):
     elif tcpPacket.type == tcp.TcpPacket.CONNECT:
       connectPacket.ParseFromString(data)
       playerList.append(connectPacket.player)
+      scores[connectPacket.player.id] = {'name': connectPacket.player.name, 'score': 0}
       print('\n' + connectPacket.player.name + ' joined the lobby.')
     elif tcpPacket.type == tcp.TcpPacket.DISCONNECT:
       disconnectPacket.ParseFromString(data)
@@ -115,6 +116,7 @@ objectToDraw = None
 winner = None
 turn = None
 stopListen = True
+scores = {}
 
 def broadcast(sock, packet):
   global addrList
@@ -150,7 +152,6 @@ def joinListener(sock):
   while timer > 0 and not winner:
     try:
       data, addr = sock.recvfrom(1024)
-      print(addr)
       if addr not in addrList:
         addrList.append(addr)
     except:
@@ -169,7 +170,7 @@ def joinFlagListener(sock):
       pass
 
 def myTurnListener(sock, canvas):
-  global objectToDraw, timer, winner
+  global objectToDraw, timer, winner, scores
   timeThread = threading.Thread(target=countdown, args=(sock,))
   timeThread.start()
   joinThread = threading.Thread(target=joinListener, args=(sock,))
@@ -178,6 +179,7 @@ def myTurnListener(sock, canvas):
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
+    scores[winner.id]['score'] = scores[winner.id]['score'] + timer
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
     broadcast(sock, winnerPacket)
     print(winner.name, 'won.')
@@ -217,6 +219,7 @@ def othersTurn(sock, canvas, player):
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
+    scores[winner.id]['score'] = scores[winner.id]['score'] + timer
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
     broadcast(sock, winnerPacket)
     if winner == player:
@@ -238,9 +241,24 @@ def othersTurn(sock, canvas, player):
 
 objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 
+def addScores(turnPacket):
+  global scores
+  for playerId in scores:
+    score = turnPacket.scores.add()
+    score.name = scores[playerId]['name']
+    score.score = scores[playerId]['score']
+  return turnPacket
+
+def printScores():
+  global scores
+  print("\nScores:")
+  for score in scores.values():
+    print(score['name'], '-', score['score'])
+
 def gameStart(sock, player, canvas):
   global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen
 
+  scores[player.id] = {'name': player.name, 'score': 0}
   print('Waiting for other players...')
   while len(playerList) == 1:  # no other players
     time.sleep(1)
@@ -250,7 +268,6 @@ def gameStart(sock, player, canvas):
     try:
       data, addr = sock.recvfrom(1024)
       addrList.append(addr)
-      print(addr)
       break
     except: pass
 
@@ -269,7 +286,9 @@ def gameStart(sock, player, canvas):
     # send TURN packet
     objectToDraw = random.choice(objects)
     turnPacket = udp.UdpPacket.TurnPacket(type=udp.UdpPacket.TURN, player=turn, object=objectToDraw)
+    turnPacket = addScores(turnPacket)
     broadcast(sock, turnPacket)
+    printScores()
 
     if turn == player:
       print('\nYour turn.')
