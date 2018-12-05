@@ -4,6 +4,11 @@ import "player.proto";
 option java_package = "proto";
 option java_outer_classname = "UdpPacketProtos";
 
+message Scores {
+  required string name = 1;
+  required int32 score = 2;
+}
+
 message UdpPacket {
   enum PacketType {
     DRAW = 0;
@@ -11,15 +16,19 @@ message UdpPacket {
     TURN = 2;
     TIME = 3;
     TIMEOUT = 4;
+    PORT = 5;
   }
 
   required PacketType type = 1;
 
   message DrawPacket {
     required PacketType type = 1;
-    required int32 x = 2;
-    required int32 y = 3;
-    required string color = 4;
+    optional int32 x = 2;
+    optional int32 y = 3;
+    optional string color = 4;
+    optional int32 width = 5;
+    optional bool start = 6;
+    optional bool clear = 7;
   }
 
   message WinnerPacket {
@@ -34,11 +43,16 @@ message UdpPacket {
   message TurnPacket {
     required PacketType type = 1;
     required Player player = 2;
-    optional string object = 3;
+    repeated Scores scores = 3;
+    optional string object = 4;
   }
 
   message TimePacket {
     required PacketType type = 1;
     required int32 time = 2;
+  }
+
+  message PortPacket {
+    required PacketType type = 1;
   }
 }
