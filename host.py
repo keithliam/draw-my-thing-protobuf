@@ -14,7 +14,6 @@ root = tk.Tk()
 def prev(event):
   global ix, iy
   ix, iy = event.x, event.y
-  print("START:",event.x,event.y)
 
 def draw(event):
   global ix, iy
@@ -23,6 +22,16 @@ def draw(event):
   canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
   canvas.create_line(ix, iy, event.x, event.y, fill = color, width = linewidth)
   ix, iy = event.x, event.y
+
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    x = event.x,
+    y = event.y,
+    color = color
+  )
+  broadcast(sock, drawPacket)
+
+
 
 
 def erase(event):
@@ -76,7 +85,7 @@ def clear(event=None):
 
 root.geometry("1000x620") 
 root.title("CHAT AREA")
-canvas = tk.Canvas(root, bg="white", height=35, width=65)
+canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=65)
 canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
@@ -201,11 +210,11 @@ def currentPlayers(sock):
   players.configure(state = 'normal')
   players.delete(1.0, tk.END)
   for i in playersInGame:
-    players.insert(tk.END, i.name + ' : <SCORE>\n')
+    players.insert(tk.END, i.name + ' : 0 \n')
   players.configure(state = 'disabled') 
 
 def receivePackets(sock, player):
-  global objectToDraw, turn, winner
+  global objectToDraw, turn, winner, nextPort, scores, addrList
   tcpPacket = tcp.TcpPacket()
   chatPacket = tcp.TcpPacket.ChatPacket()
   connectPacket = tcp.TcpPacket.ConnectPacket()
@@ -232,6 +241,7 @@ def receivePackets(sock, player):
       chatarea.configure(state = 'normal')
       chatarea.insert(tk.END, connectPacket.player.name + ' joined the lobby! \n') 
       chatarea.configure(state = 'disabled')
+      scores[connectPacket.player.id] = {'name': connectPacket.player.name, 'score': 0}
       currentPlayers(sock)
     elif tcpPacket.type == tcp.TcpPacket.DISCONNECT:
       disconnectPacket.ParseFromString(data)
@@ -241,6 +251,7 @@ def receivePackets(sock, player):
         chatarea.insert(tk.END, disconnectPacket.player.name + ' disconnected from the lobby! \n') 
         chatarea.configure(state = 'disabled')
         currentPlayers(sock)
+  
       else:
         chatarea.configure(state = 'normal')
         chatarea.insert(tk.END, disconnectPacket.player.name + ' lost connection to the lobby! \n') 
@@ -255,6 +266,8 @@ timer = 30
 objectToDraw = None
 winner = None
 turn = None
+stopListen = True
+scores = {}
 
 def countdown(sock):
   global timer
@@ -263,71 +276,105 @@ def countdown(sock):
     timer -= 1
     gametime['text'] = timer;
     timePacket = udp.UdpPacket.TimePacket(type=udp.UdpPacket.TIME, time=timer)
-    sock.sendto(timePacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timePacket)
  
 
-def draw(sock, canvas):
-  xCoor = 0;  # fake
-  yCoor = 0;  # fake
-  color = 'black'
-  drawPacket = udp.UdpPacket.DrawPacket(
-    type = udp.UdpPacket.DRAW,
-    x = xCoor,
-    y = yCoor,
-    color = color
-  )
-  sock.sendto(drawPacket.SerializeToString(), ('', 1235))
+
+def joinListener(sock):
+  global addrList
+  udpPacket = udp.UdpPacket()
+  portPacket = udp.UdpPacket.PortPacket()
+  while timer > 0 and not winner:
+    try:
+      data, addr = sock.recvfrom(1024)
+      if addr not in addrList:
+        addrList.append(addr)
+    except:
+      pass
+
+def joinFlagListener(sock):
+  global addrList, stopListen
+  udpPacket = udp.UdpPacket()
+  portPacket = udp.UdpPacket.PortPacket()
+  while not stopListen:
+    try:
+      data, addr = sock.recvfrom(1024)
+      if addr not in addrList:
+        addrList.append(addr)
+    except:
+      pass
 
 def myTurnListener(sock, canvas):
   global objectToDraw, timer, winner
   timeThread = threading.Thread(target=countdown, args=(sock,))
   timeThread.start()
-  # call draw() for every point drawn:
+  joinThread = threading.Thread(target=joinListener, args=(sock,))
+  joinThread.start()
+  canvas.configure(state="normal")
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
+    scores[winner.id]['score'] = scores[winner.id]['score'] + timer
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
-    sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, winnerPacket)
     chatarea.configure(state = 'normal')
     chatarea.insert(tk.END, winner.name + ' won!! \n') 
     chatarea.configure(state = 'disabled')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
-    sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timeoutPacket)
     chatarea.configure(state = 'normal')
     chatarea.insert(tk.END, 'Nobody won.. \n') 
     chatarea.configure(state = 'disabled')
   timeThread.join()
+  joinThread.join()
   # declareWinner() # thread with timer for GUI (use `winner` variable)
-  # clearCanvas() # for GUI
+  canvas.delete("all")
   objectToDraw = None
   winner = None
   timer = 30
 
-# def otherTurnDrawListener(sock, canvas):
-#   udpPacket = udp.UdpPacket()
-#   while True:
-#     data, addr = sock.recvfrom(1024)
-#     udpPacket.ParseFromString(data)
-#     if winner:
-#       break
-    # if udpPacket.type == udp.UdpPacket.DRAW:
-    #   drawPacket = udp.UdpPacket.DrawPacket()
-    #   drawPacket.ParseFromString(data)
-    #   canvas.draw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+  
+def userDraw(x, y, color):
+  global ix, iy
+  canvas.configure(state="normal")
+  x1, y1 = ( x - radius ), ( y - radius )
+  x2, y2 = ( x + radius ), ( y + radius )
+  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+  canvas.create_line(ix, iy, x, y, fill = color, width = linewidth)
+  canvas.configure(state="disabled")
+
+def otherTurnDrawListener(sock):
+   udpPacket = udp.UdpPacket()
+   while True:
+     data, addr = sock.recvfrom(1024)
+     udpPacket.ParseFromString(data)
+     if winner:
+       break
+     if udpPacket.type == udp.UdpPacket.DRAW:
+        drawPacket = udp.UdpPacket.DrawPacket()
+        drawPacket.ParseFromString(data)
+        userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+
+def broadcast(sock, packet):
+  global addrList
+  for addr in addrList:
+    sock.sendto(packet.SerializeToString(), addr)
 
 def othersTurn(sock, canvas, player):
   global timer, winner, objectToDraw
-  # disableCanvas() # (disable drawing for player) for GUI
+  canvas.configure(state="disabled")
   timeThread = threading.Thread(target=countdown, args=(sock,))
   timeThread.start()
-  # drawingPlayerThread = threading.Thread(target=otherTurnDrawListener, args=(sock, canvas))
-  # drawingPlayerThread.start()
+  joinThread = threading.Thread(target=joinListener, args=(sock,))
+  joinThread.start()
+  otherTurnDrawListener(sock)
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
+    scores[winner.id]['score'] = scores[winner.id]['score'] + timer
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
-    sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, winnerPacket)
     if winner == player:
       chatarea.configure(state = 'normal')
       chatarea.insert(tk.END, 'You won!! \n') 
@@ -338,42 +385,73 @@ def othersTurn(sock, canvas, player):
       chatarea.configure(state = 'disabled')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
-    sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timeoutPacket)
     chatarea.configure(state = 'normal')
     chatarea.insert(tk.END, 'Nobody won.. \n') 
     chatarea.configure(state = 'disabled')
   timeThread.join()
   # drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
-  # clearCanvas() # for GUI
+  canvas.delete("all")
   winner = None
   objectToDraw = None
   timer = 30
 
+def addScores(turnPacket):
+  global scores
+  for playerId in scores:
+    score = turnPacket.scores.add()
+    score.name = scores[playerId]['name']
+    score.score = scores[playerId]['score']
+  return turnPacket
+
+def printScores():
+  global scores
+  print("\nScores:")
+  players.configure(state = 'normal')
+  players.delete(1.0, tk.END)
+  for score in scores.values():
+    players.insert(tk.END, str(score['name']) + ' : ' + str(score['score']) + '\n')
+  players.configure(state = 'disabled') 
+
 objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 
 def gameStart(sock, player, canvas):
-  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort
-
+  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen
+  scores[player.id] = {'name': player.name, 'score': 0}
   chatarea.configure(state = 'normal')
   chatarea.insert(tk.END, 'Waiting for other players to join.. \n') 
   chatarea.configure(state = 'disabled')
   while len(playerList) == 1:  # no other players
     time.sleep(1)
   waitingForPlayersFlag = not waitingForPlayersFlag;
+
+  while True:
+    try:
+      data, addr = sock.recvfrom(1024)
+      addrList.append(addr)
+      break
+    except: pass
+
   chatarea.configure(state = 'normal')
   chatarea.insert(tk.END, 'GAME STARTED! \n') 
   chatarea.configure(state = 'disabled')
   
   turnNo = 0
   while True:
+    stopListen = False
+    joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+    joinThread.start()
     time.sleep(1)
+    stopListen = True
+    joinThread.join()
     turn = playerList[turnNo]
-
     # send TURN packet
     objectToDraw = random.choice(objects)
     turnPacket = udp.UdpPacket.TurnPacket(type=udp.UdpPacket.TURN, player=turn, object=objectToDraw)
-    sock.sendto(turnPacket.SerializeToString(), ('', 1235))
+    turnPacket = addScores(turnPacket)
+    broadcast(sock, turnPacket)
+    printScores()
 
     if turn == player:
       turnLabel['text'] = "Your turn!"
@@ -381,7 +459,12 @@ def gameStart(sock, player, canvas):
       wordarea.delete(1.0, tk.END)
       wordarea.insert(tk.END, "DRAW THIS: \n" + objectToDraw);
       wordarea.configure(state="disabled")
+      stopListen = False
+      joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+      joinThread.start()
       time.sleep(3)
+      stopListen = True
+      joinThread.join()
       myTurnListener(sock, canvas)
     else:
       turnLabel['text'] = turn.name + "'s turn!"
@@ -390,7 +473,12 @@ def gameStart(sock, player, canvas):
       wordarea.delete(1.0, tk.END)
       wordarea.insert(tk.END, "GUESS THE DRAWING!");
       wordarea.configure(state="disabled")
+      stopListen = False
+      joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+      joinThread.start()
       time.sleep(3)
+      stopListen = True
+      joinThread.join()
       othersTurn(sock, canvas, player)
 
     turnNo += 1
@@ -407,7 +495,7 @@ sock.connect(("202.92.144.45", 80))
 lobbyId = createLobby(sock)
 def getName():
   # Get player name
-  global player, playerList, packetListener, udpSock, gameListener
+  global player, playerList, packetListener, udpSock, gameListener, addrList
   player = play.Player(
     name = hname.get()
   )
@@ -416,6 +504,8 @@ def getName():
   player = connectToLobby(sock, player, lobbyId)
   # Get player list
   playerList = getPlayerList(sock)
+  addrList = []
+  nextPort = 1235
   # Listen for messages
   packetListener = threading.Thread(target=receivePackets, args=(sock, player))
   packetListener.start()
@@ -423,6 +513,7 @@ def getName():
   udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   udpSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
   udpSock.bind(('', 1234))
+  udpSock.settimeout(0.1)
   gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas))
   gameListener.start()
   root.deiconify()

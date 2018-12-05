@@ -19,6 +19,13 @@ def draw(event):
   canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
   canvas.create_line(ix, iy, event.x, event.y, fill = color, width = linewidth)
   ix, iy = event.x, event.y
+  drawPacket = udp.UdpPacket.DrawPacket(
+    type = udp.UdpPacket.DRAW,
+    x = event.x,
+    y = event.y,
+    color = color
+  )
+  udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
 
 def erase(event):
   global ix, iy
@@ -71,7 +78,7 @@ def clear(event=None):
 
 root.geometry("1000x620") 
 root.title("CHAT AREA")
-canvas = tk.Canvas(root, bg="white", height=35, width=65)
+canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=65)
 canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
@@ -193,8 +200,6 @@ def receivePackets(sock, player):
         chatarea.configure(state = 'normal')
         chatarea.insert(tk.END, chatPacket.player.name + ' : ' + chatPacket.message + '\n') 
         chatarea.configure(state = 'disabled')
-      if(chatPacket.message == objectToDraw and not (turn == chatPacket.player) and not winner):
-        winner = chatPacket.player
     elif tcpPacket.type == tcp.TcpPacket.CONNECT:
       connectPacket.ParseFromString(data)
       playerList.append(connectPacket.player)
@@ -221,7 +226,7 @@ def currentPlayers(sock):
   players.configure(state = 'normal')
   players.delete(1.0, tk.END)
   for i in playersInGame:
-    players.insert(tk.END, i.name + ' : <SCORE>\n')
+    players.insert(tk.END, i.name + ' : 0 \n')
   players.configure(state = 'disabled')  
 
 waitingForGameFlag = True
@@ -230,18 +235,6 @@ timer = 30
 objectToDraw = None
 winner = None;
 turn = None;
-
-def draw(sock, canvas):
-  xCoor = 0;  # fake
-  yCoor = 0;  # fake
-  color = 'black'
-  drawPacket = udp.UdpPacket.DrawPacket(
-    type = udp.UdpPacket.DRAW,
-    x = xCoor,
-    y = yCoor,
-    color = color
-  )
-  sock.send(drawPacket.SerializeToString())
 
 def winnerListen(sock):
   global timer, winner
@@ -253,6 +246,7 @@ def winnerListen(sock):
       winnerPacket = udp.UdpPacket.WinnerPacket()
       winnerPacket.ParseFromString(data)
       winner = winnerPacket.player
+      print(winner)
       break
     elif udpPacket.type == udp.UdpPacket.TIME:
       timePacket = udp.UdpPacket.TimePacket()
@@ -264,7 +258,7 @@ def winnerListen(sock):
 
 def myTurnListener(sock, canvas):
   global objectToDraw, winner, timer
-  # call draw() for every point drawn:
+  canvas.configure(state="normal")
   winnerThread = threading.Thread(target=winnerListen, args=(sock,))
   winnerThread.start()
   while timer > 0 and not winner:
@@ -279,10 +273,19 @@ def myTurnListener(sock, canvas):
     chatarea.configure(state = 'disabled')
   winnerThread.join()
   # declareWinner() # thread with timer for GUI (use `winner` variable)
-  # clearCanvas() # for GUI
+  canvas.delete("all")
   objectToDraw = None
   winner = None
   timer = 30
+
+def userDraw(x, y, color):
+  global ix, iy
+  canvas.configure(state="normal")
+  x1, y1 = ( x - radius ), ( y - radius )
+  x2, y2 = ( x + radius ), ( y + radius )
+  canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
+  canvas.create_line(ix, iy, x, y, fill = color, width = linewidth)
+  canvas.configure(state="disabled")
 
 def otherTurnListener(sock, canvas):
   global winner, timer
@@ -295,10 +298,11 @@ def otherTurnListener(sock, canvas):
       timePacket.ParseFromString(data)
       timer = timePacket.time
       gametime['text'] = timer;
-    # if udpPacket.type == udp.UdpPacket.DRAW:
-    #   drawPacket = udp.UdpPacket.DrawPacket()
-    #   drawPacket.ParseFromString(data)
-    #   canvas.draw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
+    elif udpPacket.type == udp.UdpPacket.DRAW:
+      canvas.configure(state="normal")
+      drawPacket = udp.UdpPacket.DrawPacket()
+      drawPacket.ParseFromString(data)
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
     elif udpPacket.type == udp.UdpPacket.WINNER:
       winnerPacket = udp.UdpPacket.WinnerPacket()
       winnerPacket.ParseFromString(data)
@@ -306,10 +310,11 @@ def otherTurnListener(sock, canvas):
       break
     elif udpPacket.type == udp.UdpPacket.TIMEOUT:
       break
+  canvas.configure(state="disabled")
 
 def othersTurn(sock, canvas, player):
   global objectToDraw, timer, winner
-  # disableCanvas() # (disable drawing for player) for GUI
+  canvas.configure(state="disabled")
   drawingPlayerThread = threading.Thread(target=otherTurnListener, args=(sock, canvas))
   drawingPlayerThread.start()
   while timer > 0 and not winner:
@@ -328,7 +333,7 @@ def othersTurn(sock, canvas, player):
     chatarea.configure(state = 'disabled')
   drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
-  # clearCanvas() # for GUI
+  canvas.delete("all")
   objectToDraw = None
   winner = None
   timer = 30
@@ -337,9 +342,9 @@ def gameStart(sock, player, canvas):
   global objectToDraw, turn, ipAddressPort
   udpPacket = udp.UdpPacket()
   turnPacket = udp.UdpPacket.TurnPacket()
+
   while True:
     data, addr = sock.recvfrom(1024)
-
     udpPacket.ParseFromString(data)
     if udpPacket.type == udp.UdpPacket.TURN:
       turnPacket.ParseFromString(data)
@@ -363,16 +368,23 @@ def gameStart(sock, player, canvas):
         time.sleep(3)
         othersTurn(sock, canvas, player)
       turn = None
+    elif udpPacket.type == udp.UdpPacket.DRAW:
+      print("HELLO!")
 
+def printScores(scores):
+  players.configure(state = 'normal')
+  players.delete(1.0, tk.END)
+  for score in scores.values():
+    players.insert(tk.END, str(score['name']) + ' : ' + str(score['score']) + '\n')
+  players.configure(state = 'disabled')  
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect(("202.92.144.45", 80))
 
-
 def getName():
   # Get player name
-  global player, playerList, packetListener, udpSock, gameListener, lobbyId
+  global player, playerList, packetListener, udpSock, gameListener, lobbyId, portPacket
   player = play.Player(
     name = hname.get()
   )
@@ -387,9 +399,10 @@ def getName():
   packetListener = threading.Thread(target=receivePackets, args=(sock, player))
   packetListener.start()
   # UDP Connection
-  udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-  udpSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-  udpSock.bind(('', 1235))
+  udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+  portPacket = udp.UdpPacket.PortPacket(type=udp.UdpPacket.PORT)
+  udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
+
   gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas))
   gameListener.start()
   root.deiconify()
