@@ -20,8 +20,6 @@ def draw(event):
   global ix, iy
   x1, y1 = ( event.x - radius ), ( event.y - radius )
   x2, y2 = ( event.x + radius ), ( event.y + radius )
-
-  print("PT1:",ix,iy," PT2:",event.x,event.y)
   canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
   canvas.create_line(ix, iy, event.x, event.y, fill = color, width = linewidth)
   ix, iy = event.x, event.y
@@ -76,7 +74,7 @@ def clear(event=None):
 
 
 
-root.geometry("1000x600") 
+root.geometry("1000x620") 
 root.title("CHAT AREA")
 canvas = tk.Canvas(root, bg="white", height=35, width=65)
 canvas.bind("<Button-1>", prev)
@@ -105,6 +103,8 @@ button = tk.Button(root,text='submit',command=submit)
 root.bind('<Return>', submit)
 #TIMER
 
+labelID = tk.Label(root,text="",font=('Helvetica', '15'), fg="blue")
+labelID.pack()
 
 
 #PlayerList
@@ -115,7 +115,7 @@ gametime.pack()
 turnLabel = tk.Label(playerframe,text="TURN", fg="red", font=('Helvetica', '15'))
 turnLabel.pack()
 wordarea = tk.Text(playerframe, state='normal', height=4, width=15, fg="red", font=('Helvetica, 10'))
-wordarea.insert(tk.END, "DRAW THIS: \n")
+wordarea.insert(tk.END, "Draw my thing: \n")
 wordarea.configure(state = "disabled")
 wordarea.pack()
 playerLabel = tk.Label(playerframe,text="PLAYERS:")
@@ -288,11 +288,15 @@ def myTurnListener(sock, canvas):
   if winner:
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
     sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
-    print(winner.name, 'won.')
+    chatarea.configure(state = 'normal')
+    chatarea.insert(tk.END, winner.name + ' won!! \n') 
+    chatarea.configure(state = 'disabled')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
     sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
-    print('Nobody won.')
+    chatarea.configure(state = 'normal')
+    chatarea.insert(tk.END, 'Nobody won.. \n') 
+    chatarea.configure(state = 'disabled')
   timeThread.join()
   # declareWinner() # thread with timer for GUI (use `winner` variable)
   # clearCanvas() # for GUI
@@ -325,13 +329,19 @@ def othersTurn(sock, canvas, player):
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
     sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
     if winner == player:
-      print('You won.')
+      chatarea.configure(state = 'normal')
+      chatarea.insert(tk.END, 'You won!! \n') 
+      chatarea.configure(state = 'disabled')
     else:
-      print(winner.name, 'won.')
+      chatarea.configure(state = 'normal')
+      chatarea.insert(tk.END, winner.name + ' won!! \n') 
+      chatarea.configure(state = 'disabled')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
     sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
-    print('Nobody won.')
+    chatarea.configure(state = 'normal')
+    chatarea.insert(tk.END, 'Nobody won.. \n') 
+    chatarea.configure(state = 'disabled')
   timeThread.join()
   # drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
@@ -345,11 +355,15 @@ objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 def gameStart(sock, player, canvas):
   global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort
 
-  print('Waiting for other players...')
+  chatarea.configure(state = 'normal')
+  chatarea.insert(tk.END, 'Waiting for other players to join.. \n') 
+  chatarea.configure(state = 'disabled')
   while len(playerList) == 1:  # no other players
     time.sleep(1)
   waitingForPlayersFlag = not waitingForPlayersFlag;
-  print('Game started.')
+  chatarea.configure(state = 'normal')
+  chatarea.insert(tk.END, 'GAME STARTED! \n') 
+  chatarea.configure(state = 'disabled')
   
   turnNo = 0
   while True:
@@ -362,13 +376,20 @@ def gameStart(sock, player, canvas):
     sock.sendto(turnPacket.SerializeToString(), ('', 1235))
 
     if turn == player:
-      turn['text'] = "Your turn!"
-      wordarea
-      print('Object to Draw:', objectToDraw)
+      turnLabel['text'] = "Your turn!"
+      wordarea.configure(state="normal")
+      wordarea.delete(1.0, tk.END)
+      wordarea.insert(tk.END, "DRAW THIS: \n" + objectToDraw);
+      wordarea.configure(state="disabled")
       time.sleep(3)
       myTurnListener(sock, canvas)
     else:
+      turnLabel['text'] = turn.name + "'s turn!"
       print('\n' + turn.name + '\'s turn.')
+      wordarea.configure(state="normal")
+      wordarea.delete(1.0, tk.END)
+      wordarea.insert(tk.END, "GUESS THE DRAWING!");
+      wordarea.configure(state="disabled")
       time.sleep(3)
       othersTurn(sock, canvas, player)
 
@@ -406,6 +427,7 @@ def getName():
   gameListener.start()
   root.deiconify()
 
+labelID['text'] = "LOBBY ID: " + lobbyId
 hostPage = tk.Toplevel()
 hostPage.title("WELCOME, HOST")
 hostPage.geometry('300x100')
