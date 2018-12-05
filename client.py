@@ -361,7 +361,7 @@ def othersTurn(sock, canvas, player):
   timer = 30
 
 def gameStart(sock, player, canvas):
-  global objectToDraw, turn, ipAddressPort, turnPacket, drawFlag
+  global objectToDraw, turn, ipAddressPort, turnPacket, drawFlag, gametime, timer
   udpPacket = udp.UdpPacket()
   turnPacket = udp.UdpPacket.TurnPacket()
 
@@ -398,6 +398,12 @@ def gameStart(sock, player, canvas):
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
       userDraw(canvas, drawPacket.x, drawPacket.y, drawPacket.color, drawPacket.width, drawPacket.start, drawPacket.clear)
+    elif udpPacket.type == udp.UdpPacket.TIME:
+      timePacket = udp.UdpPacket.TimePacket()
+      timePacket.ParseFromString(data)
+      timer = timePacket.time
+      gametime['text'] = timer
+
 
 def printScores(scores):
   players.configure(state = 'normal')
