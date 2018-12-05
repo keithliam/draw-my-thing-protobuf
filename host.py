@@ -158,7 +158,7 @@ players.pack(side="left")
 
 
 canvas.pack(side="left", expand = "YES", fill = "both")
-chatarea.pack();
+chatarea.pack()
 entry.pack()
 button.pack()
 yellow.pack(side="left")
@@ -283,7 +283,7 @@ def receivePackets(sock, player):
 
 
 
-waitingForPlayersFlag = True;
+waitingForPlayersFlag = True
 drawFlag = False
 timer = 30
 objectToDraw = None
@@ -293,11 +293,11 @@ stopListen = True
 scores = {}
 
 def countdown(sock):
-  global timer, gametime
+  global timer, gametime, winner
   while timer > 0 and not winner:
     time.sleep(1)
     timer -= 1
-    gametime['text'] = timer;
+    gametime['text'] = timer
     timePacket = udp.UdpPacket.TimePacket(type=udp.UdpPacket.TIME, time=timer)
     broadcast(sock, timePacket)
  
@@ -442,7 +442,6 @@ def addScores(turnPacket):
 
 def printScores():
   global scores
-  print("\nScores:")
   players.configure(state = 'normal')
   players.delete(1.0, tk.END)
   for score in scores.values():
@@ -459,7 +458,7 @@ def gameStart(sock, player, canvas):
   chatarea.configure(state = 'disabled')
   while len(playerList) == 1:  # no other players
     time.sleep(1)
-  waitingForPlayersFlag = not waitingForPlayersFlag;
+  waitingForPlayersFlag = not waitingForPlayersFlag
 
   while True:
     try:
@@ -493,7 +492,7 @@ def gameStart(sock, player, canvas):
       turnLabel['text'] = "Your turn!"
       wordarea.configure(state="normal")
       wordarea.delete(1.0, tk.END)
-      wordarea.insert(tk.END, "DRAW THIS: \n" + objectToDraw);
+      wordarea.insert(tk.END, "DRAW THIS: \n" + objectToDraw)
       wordarea.configure(state="disabled")
       stopListen = False
       joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
@@ -504,10 +503,9 @@ def gameStart(sock, player, canvas):
       myTurnListener(sock, canvas)
     else:
       turnLabel['text'] = turn.name + "'s turn!"
-      print('\n' + turn.name + '\'s turn.')
       wordarea.configure(state="normal")
       wordarea.delete(1.0, tk.END)
-      wordarea.insert(tk.END, "GUESS THE DRAWING!");
+      wordarea.insert(tk.END, "GUESS THE DRAWING!")
       wordarea.configure(state="disabled")
       stopListen = False
       joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
