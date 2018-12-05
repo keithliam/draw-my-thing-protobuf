@@ -62,7 +62,7 @@ def getPlayerList(sock):
   return list(packet.player_list)
 
 def receivePackets(sock, player):
-  global objectToDraw, turn, winner
+  global objectToDraw, turn, winner, addrList, nextPort
   tcpPacket = tcp.TcpPacket()
   chatPacket = tcp.TcpPacket.ChatPacket()
   connectPacket = tcp.TcpPacket.ConnectPacket()
@@ -114,6 +114,12 @@ timer = 30
 objectToDraw = None
 winner = None
 turn = None
+stopListen = True
+
+def broadcast(sock, packet):
+  global addrList
+  for addr in addrList:
+    sock.sendto(packet.SerializeToString(), addr)
 
 def countdown(sock):
   global timer
@@ -122,7 +128,7 @@ def countdown(sock):
     timer -= 1
     print('TIME LEFT:', timer)
     timePacket = udp.UdpPacket.TimePacket(type=udp.UdpPacket.TIME, time=timer)
-    sock.sendto(timePacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timePacket)
 
 
 def draw(sock, canvas):
@@ -135,24 +141,52 @@ def draw(sock, canvas):
     y = yCoor,
     color = color
   )
-  sock.sendto(drawPacket.SerializeToString(), ('', 1235))
+  broadcast(sock, drawPacket)
+
+def joinListener(sock):
+  global addrList
+  udpPacket = udp.UdpPacket()
+  portPacket = udp.UdpPacket.PortPacket()
+  while timer > 0 and not winner:
+    try:
+      data, addr = sock.recvfrom(1024)
+      print(addr)
+      if addr not in addrList:
+        addrList.append(addr)
+    except:
+      pass
+
+def joinFlagListener(sock):
+  global addrList
+  udpPacket = udp.UdpPacket()
+  portPacket = udp.UdpPacket.PortPacket()
+  while not stopListen:
+    try:
+      data, addr = sock.recvfrom(1024)
+      if addr not in addrList:
+        addrList.append(addr)
+    except:
+      pass
 
 def myTurnListener(sock, canvas):
   global objectToDraw, timer, winner
   timeThread = threading.Thread(target=countdown, args=(sock,))
   timeThread.start()
+  joinThread = threading.Thread(target=joinListener, args=(sock,))
+  joinThread.start()
   # call draw() for every point drawn:
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
-    sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, winnerPacket)
     print(winner.name, 'won.')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
-    sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timeoutPacket)
     print('Nobody won.')
   timeThread.join()
+  joinThread.join()
   # declareWinner() # thread with timer for GUI (use `winner` variable)
   # clearCanvas() # for GUI
   objectToDraw = None
@@ -178,20 +212,23 @@ def othersTurn(sock, canvas, player):
   timeThread.start()
   # drawingPlayerThread = threading.Thread(target=otherTurnDrawListener, args=(sock, canvas))
   # drawingPlayerThread.start()
+  joinThread = threading.Thread(target=joinListener, args=(sock,))
+  joinThread.start()
   while timer > 0 and not winner:
     time.sleep(0.25)
   if winner:
     winnerPacket = udp.UdpPacket.WinnerPacket(type=udp.UdpPacket.WINNER, player=winner)
-    sock.sendto(winnerPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, winnerPacket)
     if winner == player:
       print('You won.')
     else:
       print(winner.name, 'won.')
   else:
     timeoutPacket = udp.UdpPacket.TimeoutPacket(type=udp.UdpPacket.TIMEOUT)
-    sock.sendto(timeoutPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, timeoutPacket)
     print('Nobody won.')
   timeThread.join()
+  joinThread.join()
   # drawingPlayerThread.join()
   # declareWinner() # thread with timer for GUI
   # clearCanvas() # for GUI
@@ -202,32 +239,56 @@ def othersTurn(sock, canvas, player):
 objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 
 def gameStart(sock, player, canvas):
-  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort
+  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen
 
   print('Waiting for other players...')
   while len(playerList) == 1:  # no other players
     time.sleep(1)
   waitingForPlayersFlag = not waitingForPlayersFlag;
+
+  while True:
+    try:
+      data, addr = sock.recvfrom(1024)
+      addrList.append(addr)
+      print(addr)
+      break
+    except: pass
+
   print('Game started.')
   
   turnNo = 0
   while True:
+    stopListen = False
+    joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+    joinThread.start()
     time.sleep(1)
+    stopListen = True
+    joinThread.join()
     turn = playerList[turnNo]
 
     # send TURN packet
     objectToDraw = random.choice(objects)
     turnPacket = udp.UdpPacket.TurnPacket(type=udp.UdpPacket.TURN, player=turn, object=objectToDraw)
-    sock.sendto(turnPacket.SerializeToString(), ('', 1235))
+    broadcast(sock, turnPacket)
 
     if turn == player:
       print('\nYour turn.')
       print('Object to Draw:', objectToDraw)
+      stopListen = False
+      joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+      joinThread.start()
       time.sleep(3)
+      stopListen = True
+      joinThread.join()
       myTurnListener(sock, canvas)
     else:
       print('\n' + turn.name + '\'s turn.')
+      stopListen = False
+      joinThread = threading.Thread(target=joinFlagListener, args=(sock,))
+      joinThread.start()
       time.sleep(3)
+      stopListen = True
+      joinThread.join()
       othersTurn(sock, canvas, player)
 
     turnNo += 1
@@ -255,6 +316,8 @@ player = connectToLobby(sock, player, lobbyId)
 
 # Get player list
 playerList = getPlayerList(sock)
+addrList = []
+nextPort = 1235
 
 # Listen for messages
 packetListener = threading.Thread(target=receivePackets, args=(sock, player))
@@ -268,6 +331,7 @@ chat.start()
 udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udpSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 udpSock.bind(('', 1234))
+udpSock.settimeout(0.1)
 
 # Connect to game
 canvas = '' #fake

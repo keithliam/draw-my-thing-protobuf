@@ -236,8 +236,8 @@ chat.start()
 
 # UDP Connection
 udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-udpSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-udpSock.bind(('', 1235))
+portPacket = udp.UdpPacket.PortPacket(type=udp.UdpPacket.PORT)
+udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
 
 # Connect to game
 canvas = ''; # fake
