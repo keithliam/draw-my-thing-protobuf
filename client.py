@@ -209,11 +209,11 @@ def receivePackets(sock, player):
       chatPacket.ParseFromString(data)
       if chatPacket.player == player:
         chatarea.configure(state = 'normal')
-        chatarea.insert(tk.END, 'You : ' + chatPacket.message + '\n') 
+        chatarea.insert(tk.END, 'You: ' + chatPacket.message + '\n') 
         chatarea.configure(state = 'disabled')
       else:
         chatarea.configure(state = 'normal')
-        chatarea.insert(tk.END, chatPacket.player.name + ' : ' + chatPacket.message + '\n') 
+        chatarea.insert(tk.END, chatPacket.player.name + ': ' + chatPacket.message + '\n') 
         chatarea.configure(state = 'disabled')
     elif tcpPacket.type == tcp.TcpPacket.CONNECT:
       connectPacket.ParseFromString(data)
@@ -302,8 +302,8 @@ def userDraw(x, y, color, width, start, clear):
       ix = x
       iy = y
     canvas.configure(state="normal")
-    x1, y1 = ( x - (radius/2) ), ( y - (radius/2) )
-    x2, y2 = ( x + (radius/2) ), ( y + (radius/2) )
+    x1, y1 = ( x - (width / 2) ), ( y - (width / 2) )
+    x2, y2 = ( x + (width / 2) ), ( y + (width / 2) )
     canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
     if ix:
       canvas.create_line(ix, iy, x, y, fill = color, width = width)

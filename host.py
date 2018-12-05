@@ -246,13 +246,13 @@ def receivePackets(sock, player):
       chatPacket.ParseFromString(data)
       if chatPacket.player == player:
         chatarea.configure(state = 'normal')
-        chatarea.insert(tk.END, 'You : ' + chatPacket.message + '\n') 
+        chatarea.insert(tk.END, 'You: ' + chatPacket.message + '\n') 
         chatarea.configure(state = 'disabled')
       else:
         chatarea.configure(state = 'normal')
-        chatarea.insert(tk.END, chatPacket.player.name + ' : ' + chatPacket.message + '\n') 
+        chatarea.insert(tk.END, chatPacket.player.name + ': ' + chatPacket.message + '\n') 
         chatarea.configure(state = 'disabled')
-      if(chatPacket.message == objectToDraw and not (turn == chatPacket.player) and not winner):
+      if(chatPacket.message.lower() == objectToDraw.lower() and not (turn == chatPacket.player) and not winner):
         winner = chatPacket.player
     elif tcpPacket.type == tcp.TcpPacket.CONNECT:
       connectPacket.ParseFromString(data)
@@ -363,8 +363,8 @@ def userDraw(x, y, color, width, start, clear):
       ix = x
       iy = y
     canvas.configure(state="normal")
-    x1, y1 = ( x - radius ), ( y - radius )
-    x2, y2 = ( x + radius ), ( y + radius )
+    x1, y1 = ( x - (width / 2) ), ( y - (width / 2) )
+    x2, y2 = ( x + (width / 2) ), ( y + (width / 2) )
     canvas.create_oval( x1, y1, x2, y2, fill = color, outline="")
     if ix:
       canvas.create_line(ix, iy, x, y, fill = color, width = width)
