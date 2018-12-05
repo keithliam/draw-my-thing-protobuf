@@ -346,6 +346,7 @@ def gameStart(sock, player, canvas):
     data, addr = sock.recvfrom(1024)
     udpPacket.ParseFromString(data)
     if udpPacket.type == udp.UdpPacket.TURN:
+      canvas.delete("all")
       turnPacket.ParseFromString(data)
       printScores(turnPacket.scores)
       turn = turnPacket.player
@@ -369,7 +370,11 @@ def gameStart(sock, player, canvas):
         othersTurn(sock, canvas, player)
       turn = None
     elif udpPacket.type == udp.UdpPacket.DRAW:
-      print("HELLO!")
+      canvas.configure(state="normal")
+      drawPacket = udp.UdpPacket.DrawPacket()
+      drawPacket.ParseFromString(data)
+      userDraw(drawPacket.x, drawPacket.y, drawPacket.color)
+      canvas.configure(state="disabled")
 
 def printScores(scores):
   players.configure(state = 'normal')
