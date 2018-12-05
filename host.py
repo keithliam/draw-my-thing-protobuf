@@ -157,7 +157,7 @@ def joinListener(sock):
       pass
 
 def joinFlagListener(sock):
-  global addrList
+  global addrList, stopListen
   udpPacket = udp.UdpPacket()
   portPacket = udp.UdpPacket.PortPacket()
   while not stopListen:
