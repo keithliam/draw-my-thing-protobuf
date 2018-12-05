@@ -309,6 +309,7 @@ def otherTurnListener(sock, canvas):
       break
     elif udpPacket.type == udp.UdpPacket.TIMEOUT:
       break
+    canvas.configure(state="disabled")
 
 def othersTurn(sock, canvas, player):
   global objectToDraw, timer, winner
@@ -337,7 +338,7 @@ def othersTurn(sock, canvas, player):
   timer = 30
 
 def gameStart(sock, player, canvas):
-  global objectToDraw, turn, ipAddressPort
+  global objectToDraw, turn, ipAddressPort, turnPacket
   udpPacket = udp.UdpPacket()
   turnPacket = udp.UdpPacket.TurnPacket()
 
@@ -346,6 +347,7 @@ def gameStart(sock, player, canvas):
     udpPacket.ParseFromString(data)
     if udpPacket.type == udp.UdpPacket.TURN:
       turnPacket.ParseFromString(data)
+      printScores(turnPacket.scores)
       turn = turnPacket.player
       objectToDraw = turnPacket.object
       if turn == player:
@@ -372,9 +374,9 @@ def gameStart(sock, player, canvas):
 def printScores(scores):
   players.configure(state = 'normal')
   players.delete(1.0, tk.END)
-  for score in scores.values():
-    players.insert(tk.END, str(score['name']) + ' : ' + str(score['score']) + '\n')
-  players.configure(state = 'disabled')  
+  for score in scores:
+    players.insert(tk.END, str(score.name) + ' : ' + str(score.score) + '\n')
+  players.configure(state = 'disabled')   
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -416,12 +416,12 @@ def printScores():
   players.delete(1.0, tk.END)
   for score in scores.values():
     players.insert(tk.END, str(score['name']) + ' : ' + str(score['score']) + '\n')
-  players.configure(state = 'disabled') 
+  players.configure(state = 'disabled')   
 
 objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 
 def gameStart(sock, player, canvas):
-  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen
+  global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen, turnPacket
   scores[player.id] = {'name': player.name, 'score': 0}
   chatarea.configure(state = 'normal')
   chatarea.insert(tk.END, 'Waiting for other players to join.. \n') 
