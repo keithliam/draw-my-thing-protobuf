@@ -265,7 +265,7 @@ def myTurnListener(sock, canvas):
     time.sleep(0.25)
   if winner:
     chatarea.configure(state = 'normal')
-    chatarea.insert(tk.END, winner.name + 'won!! \n') 
+    chatarea.insert(tk.END, winner.name + ' won!! \n') 
     chatarea.configure(state = 'disabled')
   else:
     chatarea.configure(state = 'normal')
@@ -299,7 +299,6 @@ def otherTurnListener(sock, canvas):
       timer = timePacket.time
       gametime['text'] = timer;
     elif udpPacket.type == udp.UdpPacket.DRAW:
-      canvas.configure(state="normal")
       drawPacket = udp.UdpPacket.DrawPacket()
       drawPacket.ParseFromString(data)
       userDraw(drawPacket.x, drawPacket.y, drawPacket.color) # for GUI
@@ -310,7 +309,6 @@ def otherTurnListener(sock, canvas):
       break
     elif udpPacket.type == udp.UdpPacket.TIMEOUT:
       break
-  canvas.configure(state="disabled")
 
 def othersTurn(sock, canvas, player):
   global objectToDraw, timer, winner

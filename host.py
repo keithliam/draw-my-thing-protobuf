@@ -347,13 +347,10 @@ def userDraw(x, y, color):
 def otherTurnDrawListener(sock):
    global addrList
    udpPacket = udp.UdpPacket()
-   while True:
+   while timer > 0 and not winner:
     try:
        data, addr = sock.recvfrom(1024)
        udpPacket.ParseFromString(data)
-
-       if winner:
-         break
        if udpPacket.type == udp.UdpPacket.DRAW:
           drawPacket = udp.UdpPacket.DrawPacket()
           drawPacket.ParseFromString(data)
