@@ -6,6 +6,7 @@ import player_pb2 as play
 import tcp_packet_pb2 as tcp
 import udp_packet_pb2 as udp
 import tkinter as tk
+from PIL import ImageTk
 
 # GUIIIIIIIIIIIIIIIII
 
@@ -46,7 +47,17 @@ def draw(event):
     )
     broadcast(udpSock, drawPacket)
 
+def howToPlay():
+  howToPlaypage.deiconify()
 
+def gameFlow():
+  flowPage.deiconify()
+
+def changePhoto():
+  global img, panel
+  img = tk.PhotoImage(file='images/2.gif')
+  panel = tk.Label(howToPlaypage, image = img)
+  panel.grid(row=0)
 
 
 def erase(event):
@@ -103,9 +114,13 @@ def clear(event=None):
     )
     broadcast(udpSock, drawPacket)
 
+def on_close():
+  howToPlaypage.withdraw()
 
+def off_close():
+  flowPage.withdraw()
 
-
+global img
 root.geometry("1000x620") 
 root.title("CHAT AREA")
 canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=65)
@@ -113,6 +128,29 @@ canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
 canvas.bind("<B3-Motion>", erase)
+
+howToPlaypage = tk.Toplevel()
+howToPlaypage.title("MANUAL")
+howToPlaypage.geometry('1000x620')
+howToPlaypage.attributes('-topmost', 'true')
+img = tk.PhotoImage(file='images/manual.gif')
+panel = tk.Label(howToPlaypage, image = img)
+panel.grid(row=0)
+howToPlaypage.withdraw()
+howToPlaypage.protocol("WM_DELETE_WINDOW",  on_close)
+
+flowPage = tk.Toplevel()
+flowPage.title("HOW TO PLAY")
+flowPage.geometry('1000x620')
+flowPage.attributes('-topmost', 'true')
+img2 = tk.PhotoImage(file='images/hgame.gif')
+panel2 = tk.Label(flowPage, image = img2)
+panel2.grid(row=0)
+flowPage.withdraw()
+flowPage.protocol("WM_DELETE_WINDOW",  off_close)
+
+
+
 ix = None
 iy = None
 color = "black"
@@ -129,6 +167,8 @@ radius = 3
 linewidth = 6
 #delete canvas button
 trash = tk.Button(root,text='clear',command=clear) 
+htp = tk.Button(root,text='Manual',command=howToPlay, bg="white") 
+gFlow = tk.Button(root,text='Game Flow',command=gameFlow, bg="white") 
 entry = tk.Entry(root,  bd=5, width=60)
 chatarea = tk.Text(root, state='disabled', height=35, width=65, fg="blue")
 button = tk.Button(root,text='submit',command=submit)
@@ -169,8 +209,11 @@ sml.pack(side="left")
 med.pack(side="left")
 lrg.pack(side="left")
 trash.pack(side="left")
+htp.pack(side="right")
+gFlow.pack(side="right")
 root.withdraw()
 ################################################################
+
 
 def errCheck(data):
   tcpPacket = tcp.TcpPacket()

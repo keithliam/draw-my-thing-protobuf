@@ -86,6 +86,18 @@ def line3():
   radius = 12
   linewidth = 24
 
+def on_close():
+  howToPlaypage.withdraw()
+
+def howToPlay():
+  howToPlaypage.deiconify()
+
+def off_close():
+  flowPage.withdraw()
+
+def gameFlow():
+  flowPage.deiconify()
+
 def clear(event=None):
   if drawFlag:
     canvas.delete("all") #clear canvas
@@ -102,6 +114,28 @@ canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
 canvas.bind("<B3-Motion>", erase)
+
+howToPlaypage = tk.Toplevel()
+howToPlaypage.title("INSTRUCTIONS")
+howToPlaypage.geometry('1000x620')
+howToPlaypage.attributes('-topmost', 'true')
+img = tk.PhotoImage(file='images/manual.gif')
+panel = tk.Label(howToPlaypage, image = img)
+panel.grid(row=0)
+howToPlaypage.withdraw()
+howToPlaypage.protocol("WM_DELETE_WINDOW",  on_close)
+
+flowPage = tk.Toplevel()
+flowPage.title("HOW TO PLAY")
+flowPage.geometry('1000x620')
+flowPage.attributes('-topmost', 'true')
+img2 = tk.PhotoImage(file='images/cgame.gif')
+panel2 = tk.Label(flowPage, image = img2)
+panel2.grid(row=0)
+flowPage.withdraw()
+flowPage.protocol("WM_DELETE_WINDOW",  off_close)
+
+
 ix = 0
 iy = 0
 color = "black"
@@ -119,6 +153,8 @@ linewidth = 6
 #delete canvas button
 trash = tk.Button(root,text='clear',command=clear) 
 entry = tk.Entry(root,  bd=5, width=60)
+htp = tk.Button(root,text='Manual',command=howToPlay, bg="white") 
+gFlow = tk.Button(root,text='Game Flow',command=gameFlow, bg="white") 
 chatarea = tk.Text(root, state='disabled', height=35, width=65, fg="blue")
 button = tk.Button(root,text='submit',command=submit)
 root.bind('<Return>', submit)
@@ -154,6 +190,8 @@ sml.pack(side="left")
 med.pack(side="left")
 lrg.pack(side="left")
 trash.pack(side="left")
+htp.pack(side="right")
+gFlow.pack(side="right")
 root.withdraw()
 ############################################################
 
