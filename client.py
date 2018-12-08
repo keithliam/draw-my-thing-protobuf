@@ -5,7 +5,7 @@ import player_pb2 as play
 import tcp_packet_pb2 as tcp
 import udp_packet_pb2 as udp
 import tkinter as tk
-
+import sys
 TIMER_LENGTH = 30
 
 root = tk.Tk()
@@ -100,6 +100,10 @@ def off_close():
 def gameFlow():
   flowPage.deiconify()
 
+def all_close():
+  root.destroy()
+  sys.exit(0)
+
 def clear(event=None):
   if drawFlag:
     canvas.delete("all") #clear canvas
@@ -109,9 +113,14 @@ def clear(event=None):
     )
     udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
 
-root.geometry("1000x620") 
+def showGameWinner(player):
+  root.withdraw()
+  winnerIs['text'] = player + " WINS! GAME OVER!"
+  winPage.deiconify()
+
+root.geometry("1100x620") 
 root.title("CHAT AREA")
-canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=65)
+canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=80)
 canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
@@ -137,6 +146,18 @@ panel2.grid(row=0)
 flowPage.withdraw()
 flowPage.protocol("WM_DELETE_WINDOW",  off_close)
 
+winPage = tk.Toplevel()
+winPage.title("GAME OVER! ")
+winPage.geometry('500x100')
+winPage.attributes('-topmost', 'true')
+winPage.configure(background="white")
+winnerIs = tk.Label(winPage,text="",font=('Helvetica', '20'), fg="red", bg="white", padx=9, pady=15)
+winnerIs.grid(row=3, column=1)
+winPage.withdraw()
+exit = tk.Button(winPage,text='EXIT',command=all_close, padx=50).grid(row=4, column=3)
+
+winPage.protocol("WM_DELETE_WINDOW",  all_close)
+
 
 ix = 0
 iy = 0
@@ -154,10 +175,10 @@ radius = 3
 linewidth = 6
 #delete canvas button
 trash = tk.Button(root,text='clear',command=clear) 
-entry = tk.Entry(root,  bd=5, width=60)
+entry = tk.Entry(root,  bd=5, width=50)
 htp = tk.Button(root,text='Manual',command=howToPlay, bg="white") 
 gFlow = tk.Button(root,text='Game Flow',command=gameFlow, bg="white") 
-chatarea = tk.Text(root, state='disabled', height=35, width=65, fg="blue")
+chatarea = tk.Text(root, state='disabled', height=35, width=55, fg="blue")
 button = tk.Button(root,text='submit',command=submit)
 root.bind('<Return>', submit)
 
@@ -473,14 +494,14 @@ def getName():
   # Get player list
   playerList = getPlayerList(sock)
   # Listen for messages
-  packetListener = threading.Thread(target=receivePackets, args=(sock, player))
+  packetListener = threading.Thread(target=receivePackets, args=(sock, player), daemon=True)
   packetListener.start()
   # UDP Connection
   udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   portPacket = udp.UdpPacket.PortPacket(type=udp.UdpPacket.PORT)
   udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
 
-  gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas))
+  gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas), daemon=True)
   gameListener.start()
   root.deiconify()
 

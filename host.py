@@ -7,7 +7,7 @@ import tcp_packet_pb2 as tcp
 import udp_packet_pb2 as udp
 import tkinter as tk
 from PIL import ImageTk
-
+import sys
 SCORE_GOAL = 150
 TIMER_LENGTH = 30
 MAX_PLAYERS = 16
@@ -122,10 +122,19 @@ def on_close():
 def off_close():
   flowPage.withdraw()
 
+def all_close():
+  root.destroy()
+  sys.exit(0)
+
+def showGameWinner(player):
+  root.withdraw()
+  winnerIs['text'] = player + " WINS! GAME OVER!"
+  winPage.deiconify()
+
 global img
-root.geometry("1000x620") 
+root.geometry("1100x620") 
 root.title("CHAT AREA")
-canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=65)
+canvas = tk.Canvas(root, state="disabled", bg="white", height=35, width=80)
 canvas.bind("<Button-1>", prev)
 canvas.bind("<Button-3>", prev)
 canvas.bind("<B1-Motion>", draw)
@@ -151,6 +160,17 @@ panel2.grid(row=0)
 flowPage.withdraw()
 flowPage.protocol("WM_DELETE_WINDOW",  off_close)
 
+winPage = tk.Toplevel()
+winPage.title("GAME OVER! ")
+winPage.geometry('500x100')
+winPage.attributes('-topmost', 'true')
+winPage.configure(background="white")
+winnerIs = tk.Label(winPage,text="",font=('Helvetica', '20'), fg="red", bg="white", padx=9, pady=15)
+winnerIs.grid(row=3, column=1)
+exit = tk.Button(winPage,text='EXIT',command=all_close).grid(row=5, column=3)
+winPage.withdraw()
+winPage.protocol("WM_DELETE_WINDOW",  all_close)
+
 
 
 ix = None
@@ -171,8 +191,8 @@ linewidth = 6
 trash = tk.Button(root,text='clear',command=clear) 
 htp = tk.Button(root,text='Manual',command=howToPlay, bg="white") 
 gFlow = tk.Button(root,text='Game Flow',command=gameFlow, bg="white") 
-entry = tk.Entry(root,  bd=5, width=60)
-chatarea = tk.Text(root, state='disabled', height=35, width=65, fg="blue")
+entry = tk.Entry(root,  bd=5, width=50)
+chatarea = tk.Text(root, state='disabled', height=35, width=55, fg="blue")
 button = tk.Button(root,text='submit',command=submit)
 root.bind('<Return>', submit)
 #TIMER
@@ -500,7 +520,7 @@ def getWinner():
       return score['name']
   return None
 
-objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
+objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao', 'Butterfly', 'Rock', 'Forest', 'Dog', 'Banana', 'Flower', 'Laptop', 'Chair', 'Table']
 
 def gameStart(sock, player, canvas):
   global waitingForPlayersFlag, turn, objectToDraw, ipAddressPort, stopListen, turnPacket, drawFlag
@@ -599,14 +619,14 @@ def getName():
   addrList = []
   nextPort = 1235
   # Listen for messages
-  packetListener = threading.Thread(target=receivePackets, args=(sock, player))
+  packetListener = threading.Thread(target=receivePackets, args=(sock, player), daemon=True)
   packetListener.start()
   # UDP Connection
   udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   udpSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
   udpSock.bind(('', 1234))
   udpSock.settimeout(0.1)
-  gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas))
+  gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas), daemon=True)
   gameListener.start()
   root.deiconify()
 
