@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto2',
   serialized_options=_b('\n\005protoB\017UdpPacketProtos'),
-  serialized_pb=_b('\n\x10udp_packet.proto\x1a\x0cplayer.proto\"%\n\x06Scores\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05score\x18\x02 \x02(\x05\"\xf2\x04\n\tUdpPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1a\x83\x01\n\nDrawPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\t\n\x01x\x18\x02 \x01(\x05\x12\t\n\x01y\x18\x03 \x01(\x05\x12\r\n\x05\x63olor\x18\x04 \x01(\t\x12\r\n\x05width\x18\x05 \x01(\x05\x12\r\n\x05start\x18\x06 \x01(\x08\x12\r\n\x05\x63lear\x18\x07 \x01(\x08\x1aL\n\x0cWinnerPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x1a\x34\n\rTimeoutPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1as\n\nTurnPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x12\x17\n\x06scores\x18\x03 \x03(\x0b\x32\x07.Scores\x12\x0e\n\x06object\x18\x04 \x01(\t\x1a?\n\nTimePacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x0c\n\x04time\x18\x02 \x02(\x05\x1a\x31\n\nPortPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\"M\n\nPacketType\x12\x08\n\x04\x44RAW\x10\x00\x12\n\n\x06WINNER\x10\x01\x12\x08\n\x04TURN\x10\x02\x12\x08\n\x04TIME\x10\x03\x12\x0b\n\x07TIMEOUT\x10\x04\x12\x08\n\x04PORT\x10\x05\x42\x18\n\x05protoB\x0fUdpPacketProtos')
+  serialized_pb=_b('\n\x10udp_packet.proto\x1a\x0cplayer.proto\"%\n\x06Scores\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05score\x18\x02 \x02(\x05\"\xc5\x05\n\tUdpPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1a\x83\x01\n\nDrawPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\t\n\x01x\x18\x02 \x01(\x05\x12\t\n\x01y\x18\x03 \x01(\x05\x12\r\n\x05\x63olor\x18\x04 \x01(\t\x12\r\n\x05width\x18\x05 \x01(\x05\x12\r\n\x05start\x18\x06 \x01(\x08\x12\r\n\x05\x63lear\x18\x07 \x01(\x08\x1aL\n\x0cWinnerPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x1a\x34\n\rTimeoutPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1as\n\nTurnPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x17\n\x06player\x18\x02 \x02(\x0b\x32\x07.Player\x12\x17\n\x06scores\x18\x03 \x03(\x0b\x32\x07.Scores\x12\x0e\n\x06object\x18\x04 \x01(\t\x1a?\n\nTimePacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x0c\n\x04time\x18\x02 \x02(\x05\x1a\x31\n\nPortPacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x1a\x44\n\rEndgamePacket\x12#\n\x04type\x18\x01 \x02(\x0e\x32\x15.UdpPacket.PacketType\x12\x0e\n\x06winner\x18\x02 \x02(\t\"Z\n\nPacketType\x12\x08\n\x04\x44RAW\x10\x00\x12\n\n\x06WINNER\x10\x01\x12\x08\n\x04TURN\x10\x02\x12\x08\n\x04TIME\x10\x03\x12\x0b\n\x07TIMEOUT\x10\x04\x12\x08\n\x04PORT\x10\x05\x12\x0b\n\x07\x45NDGAME\x10\x06\x42\x18\n\x05protoB\x0fUdpPacketProtos')
   ,
   dependencies=[player__pb2.DESCRIPTOR,])
 
@@ -56,11 +56,15 @@ _UDPPACKET_PACKETTYPE = _descriptor.EnumDescriptor(
       name='PORT', index=5, number=5,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ENDGAME', index=6, number=6,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=623,
-  serialized_end=700,
+  serialized_start=693,
+  serialized_end=783,
 )
 _sym_db.RegisterEnumDescriptor(_UDPPACKET_PACKETTYPE)
 
@@ -360,6 +364,43 @@ _UDPPACKET_PORTPACKET = _descriptor.Descriptor(
   serialized_end=621,
 )
 
+_UDPPACKET_ENDGAMEPACKET = _descriptor.Descriptor(
+  name='EndgamePacket',
+  full_name='UdpPacket.EndgamePacket',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='UdpPacket.EndgamePacket.type', index=0,
+      number=1, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='winner', full_name='UdpPacket.EndgamePacket.winner', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=623,
+  serialized_end=691,
+)
+
 _UDPPACKET = _descriptor.Descriptor(
   name='UdpPacket',
   full_name='UdpPacket',
@@ -377,7 +418,7 @@ _UDPPACKET = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_UDPPACKET_DRAWPACKET, _UDPPACKET_WINNERPACKET, _UDPPACKET_TIMEOUTPACKET, _UDPPACKET_TURNPACKET, _UDPPACKET_TIMEPACKET, _UDPPACKET_PORTPACKET, ],
+  nested_types=[_UDPPACKET_DRAWPACKET, _UDPPACKET_WINNERPACKET, _UDPPACKET_TIMEOUTPACKET, _UDPPACKET_TURNPACKET, _UDPPACKET_TIMEPACKET, _UDPPACKET_PORTPACKET, _UDPPACKET_ENDGAMEPACKET, ],
   enum_types=[
     _UDPPACKET_PACKETTYPE,
   ],
@@ -388,7 +429,7 @@ _UDPPACKET = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=74,
-  serialized_end=700,
+  serialized_end=783,
 )
 
 _UDPPACKET_DRAWPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE
@@ -406,6 +447,8 @@ _UDPPACKET_TIMEPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE
 _UDPPACKET_TIMEPACKET.containing_type = _UDPPACKET
 _UDPPACKET_PORTPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE
 _UDPPACKET_PORTPACKET.containing_type = _UDPPACKET
+_UDPPACKET_ENDGAMEPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE
+_UDPPACKET_ENDGAMEPACKET.containing_type = _UDPPACKET
 _UDPPACKET.fields_by_name['type'].enum_type = _UDPPACKET_PACKETTYPE
 _UDPPACKET_PACKETTYPE.containing_type = _UDPPACKET
 DESCRIPTOR.message_types_by_name['Scores'] = _SCORES
@@ -462,6 +505,13 @@ UdpPacket = _reflection.GeneratedProtocolMessageType('UdpPacket', (_message.Mess
     # @@protoc_insertion_point(class_scope:UdpPacket.PortPacket)
     ))
   ,
+
+  EndgamePacket = _reflection.GeneratedProtocolMessageType('EndgamePacket', (_message.Message,), dict(
+    DESCRIPTOR = _UDPPACKET_ENDGAMEPACKET,
+    __module__ = 'udp_packet_pb2'
+    # @@protoc_insertion_point(class_scope:UdpPacket.EndgamePacket)
+    ))
+  ,
   DESCRIPTOR = _UDPPACKET,
   __module__ = 'udp_packet_pb2'
   # @@protoc_insertion_point(class_scope:UdpPacket)
@@ -473,6 +523,7 @@ _sym_db.RegisterMessage(UdpPacket.TimeoutPacket)
 _sym_db.RegisterMessage(UdpPacket.TurnPacket)
 _sym_db.RegisterMessage(UdpPacket.TimePacket)
 _sym_db.RegisterMessage(UdpPacket.PortPacket)
+_sym_db.RegisterMessage(UdpPacket.EndgamePacket)
 
 
 DESCRIPTOR._options = None

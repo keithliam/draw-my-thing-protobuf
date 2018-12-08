@@ -17,6 +17,7 @@ message UdpPacket {
     TIME = 3;
     TIMEOUT = 4;
     PORT = 5;
+    ENDGAME = 6;
   }
 
   required PacketType type = 1;
@@ -54,5 +55,10 @@ message UdpPacket {
 
   message PortPacket {
     required PacketType type = 1;
+  }
+
+  message EndgamePacket {
+    required PacketType type = 1;
+    required string winner = 2;
   }
 }
