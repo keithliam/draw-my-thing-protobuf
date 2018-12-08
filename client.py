@@ -5,7 +5,9 @@ import player_pb2 as play
 import tcp_packet_pb2 as tcp
 import udp_packet_pb2 as udp
 import tkinter as tk
-# GUIIIIIII +++++++++++++++++++++++++++++++++++++++++++++
+
+TIMER_LENGTH = 30
+
 root = tk.Tk()
 def prev(event):
   if drawFlag:
@@ -288,7 +290,7 @@ def currentPlayers(sock):
 
 waitingForGameFlag = True
 drawFlag = False
-timer = 30
+timer = TIMER_LENGTH
 objectToDraw = None
 winner = None
 turn = None
@@ -330,7 +332,7 @@ def myTurnListener(sock, canvas):
   canvas.delete("all")
   objectToDraw = None
   winner = None
-  timer = 30
+  timer = TIMER_LENGTH
   drawFlag = False
 
 def userDraw(canvas, x, y, color, width, start, clear):
@@ -396,7 +398,7 @@ def othersTurn(sock, canvas, player):
   iy = None
   objectToDraw = None
   winner = None
-  timer = 30
+  timer = TIMER_LENGTH
 
 def gameStart(sock, player, canvas):
   global objectToDraw, turn, ipAddressPort, turnPacket, drawFlag, gametime, timer
@@ -441,7 +443,10 @@ def gameStart(sock, player, canvas):
       timePacket.ParseFromString(data)
       timer = timePacket.time
       gametime['text'] = timer
-
+    elif udpPacket.type == udp.UdpPacket.ENDGAME:
+      endgamePacket = udp.UdpPacket.EndgamePacket()
+      endgamePacket.ParseFromString(data)
+      showGameWinner(endgamePacket.winner) # TODO for GUI (show winner + exit button); passes player name (string); close all windows then exit()
 
 def printScores(scores):
   players.configure(state = 'normal')

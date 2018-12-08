@@ -8,7 +8,9 @@ import udp_packet_pb2 as udp
 import tkinter as tk
 from PIL import ImageTk
 
-# GUIIIIIIIIIIIIIIIII
+SCORE_GOAL = 150
+TIMER_LENGTH = 30
+MAX_PLAYERS = 16
 
 root = tk.Tk()
 
@@ -237,7 +239,7 @@ def errCheck(data):
 def createLobby(sock):
   packet = tcp.TcpPacket.CreateLobbyPacket(
     type = tcp.TcpPacket.CREATE_LOBBY,
-    max_players = 50
+    max_players = MAX_PLAYERS
   )
   sock.send(packet.SerializeToString())
   data = sock.recv(1024)
@@ -328,7 +330,7 @@ def receivePackets(sock, player):
 
 waitingForPlayersFlag = True
 drawFlag = False
-timer = 30
+timer = TIMER_LENGTH
 objectToDraw = None
 winner = None
 turn = None
@@ -397,7 +399,7 @@ def myTurnListener(sock, canvas):
   canvas.delete("all")
   objectToDraw = None
   winner = None
-  timer = 30
+  timer = TIMER_LENGTH
   drawFlag = False
 
   
@@ -473,7 +475,7 @@ def othersTurn(sock, canvas, player):
   iy = None
   winner = None
   objectToDraw = None
-  timer = 30
+  timer = TIMER_LENGTH
 
 def addScores(turnPacket):
   global scores
@@ -490,6 +492,13 @@ def printScores():
   for score in scores.values():
     players.insert(tk.END, str(score['name']) + ' : ' + str(score['score']) + '\n')
   players.configure(state = 'disabled')   
+
+def getWinner():
+  global scores
+  for score in scores.values():
+    if score['score'] >= SCORE_GOAL:
+      return score['name']
+  return None
 
 objects = ['Chicken', 'Pig', 'Cow', 'Horse', 'Goat', 'Carabao']
 
@@ -557,6 +566,12 @@ def gameStart(sock, player, canvas):
       stopListen = True
       joinThread.join()
       othersTurn(sock, canvas, player)
+
+    winner = getWinner()
+    if winner:
+      endgamePacket = udp.UdpPacket.EndgamePacket(type=udp.UdpPacket.ENDGAME, winner=winner)
+      broadcast(sock, endgamePacket)
+      showGameWinner(winner) # TODO for GUI (show winner + exit button); passes player name (string); close all windows then exit()
 
     turnNo += 1
     if turnNo == len(playerList):
