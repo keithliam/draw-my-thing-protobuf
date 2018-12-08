@@ -237,7 +237,7 @@ def errCheck(data):
 def createLobby(sock):
   packet = tcp.TcpPacket.CreateLobbyPacket(
     type = tcp.TcpPacket.CREATE_LOBBY,
-    max_players = 10
+    max_players = 50
   )
   sock.send(packet.SerializeToString())
   data = sock.recv(1024)
