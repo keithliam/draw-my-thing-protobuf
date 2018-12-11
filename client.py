@@ -24,7 +24,7 @@ def prev(event):
       width = linewidth,
       start = True
     )
-    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+    udpSock.sendto(drawPacket.SerializeToString(), ('206.189.47.94', 13000))
 
 def draw(event):
   if drawFlag:
@@ -41,7 +41,7 @@ def draw(event):
       color = color,
       width = linewidth
     )
-    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+    udpSock.sendto(drawPacket.SerializeToString(), ('206.189.47.94', 13000))
 
 def erase(event):
   if drawFlag:
@@ -111,7 +111,7 @@ def clear(event=None):
       type = udp.UdpPacket.DRAW,
       clear = True
     )
-    udpSock.sendto(drawPacket.SerializeToString(), ('', 1234))
+    udpSock.sendto(drawPacket.SerializeToString(), ('206.189.47.94', 13000))
 
 def showGameWinner(player):
   root.withdraw()
@@ -499,7 +499,7 @@ def getName():
   # UDP Connection
   udpSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
   portPacket = udp.UdpPacket.PortPacket(type=udp.UdpPacket.PORT)
-  udpSock.sendto(portPacket.SerializeToString(), ('', 1234))
+  udpSock.sendto(portPacket.SerializeToString(), ('206.189.47.94', 13000))
 
   gameListener = threading.Thread(target=gameStart, args=(udpSock, player, canvas), daemon=True)
   gameListener.start()
